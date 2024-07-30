@@ -3,12 +3,12 @@ package main
 import (
       "fmt"
       "os"
+      "log"
       "context"
       "time"
       "net/http"
-      "gitee.com/tfcolin/jwt_auth"
       "github.com/gin-gonic/gin"
-      "log"
+      "gitee.com/tfcolin/jwt_auth"
 )
 
 type TestJson struct {
