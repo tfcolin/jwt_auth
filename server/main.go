@@ -21,15 +21,13 @@ type IdJson struct {
 
 type UserAddJson struct {
       Token string      `json:"token"`
-      AccLimit int      `json:"acc_limit"`
       PubKey string     `json:"pubkey"`
 }
 
 type UserPrintJson struct {
-      Id int            `json:"id"`
-      Uname string            `json:"uname"`
-      Email string            `json:"email"`
-      AccTime int            `json:"acc_time"`
+      Id int                  `json:"id"`
+      UserName string         `json:"username"`
+      AccTime int             `json:"acc_time"`
       AccLimit int            `json:"acc_limit"`
 }
 
@@ -37,6 +35,10 @@ var (
       user_path string 
       admin_pubkey_path string
       quit_sig chan struct{}
+)
+
+const (
+      ACCESS_TIME_LIMIT  = 100
 )
 
 func auth_api_mw (c *gin.Context) {
@@ -62,7 +64,7 @@ func auth_admin_mw (c *gin.Context) {
             return
       }
 
-      id, uname, _ := jwt_auth.ValidateJWT(token_str, jwt_auth.Users[0].PubKey)
+      id, _, uname := jwt_auth.ValidateJWT(token_str, jwt_auth.Users[0].PubKey)
       if id == 0 && uname == "admin" {
             c.Next()
       } else {
@@ -80,8 +82,7 @@ func admin_list_user_cb (c *gin.Context) {
       jwt_auth.ListUsers (func (id int, u jwt_auth.User) {
             up := UserPrintJson {
                   Id: id,
-                  Uname: u.Uname,
-                  Email: u.Email,
+                  UserName: u.UserName,
                   AccTime: u.AccTime,
                   AccLimit: u.AccLimit,
             }
@@ -100,7 +101,7 @@ func admin_add_user_cb (c *gin.Context) {
             c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "commmand format error"})
             return
       }
-      st := jwt_auth.UserAdd (ua_input.Token, ua_input.AccLimit, ([]byte)(ua_input.PubKey), user_path)
+      st := jwt_auth.UserAdd (ua_input.Token, ACCESS_TIME_LIMIT, ([]byte)(ua_input.PubKey), user_path)
       switch (st) {
       case jwt_auth.UAS_SUCCESS:
             c.IndentedJSON(http.StatusOK, gin.H{"result": "Success"})
@@ -133,11 +134,16 @@ func admin_remove_user_cb (c *gin.Context) {
 }
 
 func admin_clear_access_time_cb (c *gin.Context) {
-      jwt_auth.ClearAccessTime()
+      if jwt_auth.ClearAccessTime() {
+            c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "server status error."})
+      }
 }
 
 func admin_quit_cb (c *gin.Context) {
-      jwt_auth.SaveUserInfo(user_path)
+      if jwt_auth.SaveUserInfo(user_path) {
+            c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "server status error."})
+            return
+      }
       c.IndentedJSON(http.StatusOK, gin.H{"result": "user info is saved: quit safely."})
       quit_sig <- struct{}{}
 }

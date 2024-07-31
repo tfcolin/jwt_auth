@@ -12,9 +12,9 @@ import (
 
 type JWTClaim struct {
       jwt.RegisteredClaims
-      Username string `json:"username"`
-      Email    string `json:"email"`
+      UserName string `json:"username"`
       UserId   int    `json:"uid"`
+      CommSeq     int `json:"seq"`
 }
 
 type AccessStatus int
@@ -44,8 +44,7 @@ const (
 
 type User struct {
       PubKey * rsa.PublicKey       
-      Uname string      
-      Email string      
+      UserName string
       AccTime int      
       AccLimit int     
 }
@@ -123,17 +122,16 @@ func LoadUserInfo (user_dir string, admin_pubkey_path string) {
 
       for {
             var id, n, acc, acc_limit int
-            var uname, email string
-            n, _ = fmt.Fscan (facc, &id, &uname, &email, &acc, &acc_limit) 
-            if n != 5 {
+            var uname string
+            n, _ = fmt.Fscan (facc, &id, &uname, &acc, &acc_limit) 
+            if n != 4 {
                   break
             }
             if (id < 0 || id >= MAX_ID) {
                   panic ("read user info record file error")
             }
             Users[id] = User {
-                  Uname: uname,
-                  Email: email,
+                  UserName: uname,
                   AccTime: acc,
                   AccLimit: acc_limit,
             }
@@ -173,8 +171,7 @@ func LoadUserInfo (user_dir string, admin_pubkey_path string) {
 
       /* set admin user */
       Users[0] = User {
-            Uname : "admin",
-            Email : "",
+            UserName : "admin",
             AccTime : 0,
             AccLimit : -1,
             PubKey : admin_pubkey,
@@ -186,7 +183,7 @@ func LoadUserInfo (user_dir string, admin_pubkey_path string) {
 }
 
 /* return JWT: len(token_str) = 0 means fail */
-func GenerateJWT (id int, username string, email string, rsa_key_path string) (token_str string) {
+func GenerateJWT (id int, seq int, uname string, rsa_key_path string) (token_str string) {
       if (id < 0 || id >= MAX_ID) {
             return
       }
@@ -197,8 +194,8 @@ func GenerateJWT (id int, username string, email string, rsa_key_path string) (t
       }
 
       claims := JWTClaim {
-            Email: email,
-            Username: username,
+            CommSeq: seq,
+            UserName: uname,
             UserId: id,
       }
       token := jwt.NewWithClaims (jwt.GetSigningMethod("RS512"), claims)
@@ -212,7 +209,7 @@ func GenerateJWT (id int, username string, email string, rsa_key_path string) (t
 }
 
 /* id = -1 means fail */
-func ValidateJWT (token_str string, rsa_pub_key *rsa.PublicKey) (id int, username string, email string) {
+func ValidateJWT (token_str string, rsa_pub_key *rsa.PublicKey) (id int, seq int, uname string) {
       token, err := jwt.ParseWithClaims (token_str, &JWTClaim{}, func (token *jwt.Token) (interface{}, error) {
             return rsa_pub_key, nil },
       )
@@ -228,13 +225,13 @@ func ValidateJWT (token_str string, rsa_pub_key *rsa.PublicKey) (id int, usernam
       }
 
       id = claims.UserId
-      username = claims.Username
-      email = claims.Email
+      seq = claims.CommSeq
+      uname = claims.UserName
 
       return
 }
 
-func GetInfoFromToken (token_str string) (id int, username string, email string) {
+func GetInfoFromToken (token_str string) (id int, seq int, uname string) {
       token, _, err := jwt.NewParser().ParseUnverified (token_str, &JWTClaim{})
       if err != nil {
             id = -1
@@ -242,8 +239,9 @@ func GetInfoFromToken (token_str string) (id int, username string, email string)
       }
       claims := token.Claims.(*JWTClaim)
       id = claims.UserId
-      username = claims.Username
-      email = claims.Email
+      seq = claims.CommSeq
+      uname = claims.UserName
+
       return
 }
 
@@ -265,7 +263,7 @@ func UserAdd (token_str string, acc_limit int, pub_key_str []byte, user_path str
             return UAS_KEY_PARSE_ERR
       }
       /* obtain id, uname, email */
-      id, uname, email := ValidateJWT (token_str, pub_key)
+      id, _, uname := ValidateJWT (token_str, pub_key)
 
       if id < 0 || id >= MAX_ID {
             return UAS_ID_ERR
@@ -283,8 +281,7 @@ func UserAdd (token_str string, acc_limit int, pub_key_str []byte, user_path str
 
       /* create table entry for user info */
       Users[id] = User {
-            Uname: uname,
-            Email: email,
+            UserName: uname,
             AccTime: 0,
             AccLimit: acc_limit,
             PubKey: pub_key,
@@ -313,7 +310,7 @@ func UserRemove (id int, user_path string) UserAddStatus {
             return UAS_ID_ERR
       }
 
-      fname := fmt.Sprintf ("%s/%s_%04d.pem", user_path, Users[id].Uname, id)
+      fname := fmt.Sprintf ("%s/%s_%04d.pem", user_path, Users[id].UserName, id)
       err := os.Remove(fname)
       if (err != nil) {
             return UAS_KEY_WRITE_ERR
@@ -337,14 +334,13 @@ func UserAccess (token_str string) AccessStatus {
       if (id < 0 || id >= MAX_ID || id_pool.GetLabel(id)) {
             return AS_INVALID_ID
       }
-
-      idv, uname, email := ValidateJWT (token_str, Users[id].PubKey)
-      if (id != idv || uname != Users[id].Uname || email != Users[id].Email) {
-            return AS_FAIL
-      }
-
       if Users[id].AccTime >= Users[id].AccLimit {
             return AS_EXCEED_LIMIT
+      }
+
+      idv, seq, uname := ValidateJWT (token_str, Users[id].PubKey)
+      if (id != idv || uname != Users[id].UserName || seq != Users[id].AccTime) {
+            return AS_FAIL
       }
 
       Users[id].AccTime ++
@@ -400,7 +396,7 @@ func SaveUserInfo (user_dir string) bool {
                   break
             }
             u := Users[id]
-            fmt.Fprintf (facc, "%v %v %v %v %v\n", id, u.Uname, u.Email, u.AccTime, u.AccLimit)
+            fmt.Fprintf (facc, "%v %v %v %v\n", id, u.UserName, u.AccTime, u.AccLimit)
       }
 
       facc.Close()
