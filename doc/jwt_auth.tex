@@ -1,0 +1,243 @@
+%\documentclass[zihao=-4]{ctexbook} % 字号
+\documentclass[UTF8, zihao=-4]{ctexart} % 字号
+%强制字体设置 (use with xelatex)
+%\setCJKmainfont{NSimSun}
+%\setCJKmainfont{WenQuanYi Micro Hei}
+%\setCJKmainfont{WenQuanYi Zen Hei}
+%\setCJKmainfont{KaiTi_GB2312}
+
+%if use with engine pdflatex: set the following
+%\documentclass[UTF8, zihao=-4, zhmap=zhmCJK, fontset=none]{ctexart} % 字号
+%\usepackage{zhmCJK}
+%\setCJKmainfont{simsun.ttc}
+%\setCJKsansfont{simkai.ttf}
+%\setCJKmonofont{simfang.ttf}
+
+\usepackage[colorlinks=false, backref=true]{hyperref} % PDF 目录
+\usepackage{graphicx} % 包含图形文件
+\usepackage{geometry} % 版面边距
+\usepackage[table]{xcolor} % 颜色
+\usepackage{fancyhdr} % 定制页眉页脚
+\usepackage{lastpage} % 使用最后一页的编号
+\usepackage{authoraftertitle} % 引用本文标题
+\usepackage{tabularray} % 高级表格
+
+% 数学符号
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{mathrsfs}
+
+\usepackage{animate} % PDF 动画
+\usepackage{listings} % 插入代码
+\usepackage{extarrows} % 高级箭头
+\usepackage[all]{xy} % 交换图表
+
+%\usepackage[text=Confidential]{draftwatermark} %加文字水印
+
+% 参考文献库
+\usepackage[backend=biber, style = caspervector, utf8, sorting = cenyt]{biblatex}
+% sorting: none 引用顺序 ecnty 英文在先 centy 中文在先
+% 引用 \cite(supercite, parencite) [prenote][postnote]{key}
+% prenote: 标号前置文字; postnote: 标号后置文字; key: 引用标签
+% cite 无格式化标号 parencite [标号] supercite 上标标号
+% \fullcite 打印完整参考文献条目
+% 使用 biber -l zh__pinyin (zh__stroke) texfile 编译参考文献
+% 打印文献列表: 
+%     \printbibliography[title = {参考文献}, heading = bibnumbered]
+%      title: 文献列表标题; 
+%      heading: 
+%           bibnumbered : 文献列表参与章节编号, 并被列入目录;  
+%           bibintoc : 文献列表被列入目录中, 但不参与章节编号.
+
+%\usepackage[text=Confidential]{draftwatermark} 可用于生成水印
+%\DraftwatermarkOptions{nostamp/stamp} 用于临时开启或关闭 水印.
+
+% 指定页面边距
+\geometry{%
+  a4paper,%
+  top=2.5cm,%
+  bottom=2.5cm,%
+  left=3.2cm,%
+  right=3.2cm%
+}
+
+% 指定章节标题
+\ctexset {
+      part = {
+            name = {（,）}, % number 前的名字, number 后的名字
+            % number 的样式 \chinese{part|section} 表示中文编号, \arabic 为数字
+            % \Roman{...} 罗马数字, \roman{...} 小写罗马数字, \alph \Alph 小写, 大写字母
+            number = {\chinese{part}}, 
+            % \raggedright \centering : 右对齐, 居中, 不设置为左对齐.
+            format = {\large\bfseries\color{blue}} % 文字样式: 大小+颜色+对齐
+            % aftername = {\hspace{0.3cm}}
+            % aftername 为章节编号与标题文本之间的内容
+            % pagestyle 为标题所在页的页面样式
+      },
+      section = {
+            format = {\large\rm\color{blue}}
+      }
+}
+
+% 预定义常用数学符号
+\newcommand{\real}{\mathbb{R}} % 实数
+\newcommand{\realpart}{\text{Re}} % 实部
+\newcommand{\comp}{\mathbb{C}} % 复数
+\newcommand{\inte}{\mathbb{Z}} % 整数
+\newcommand{\nat}{\mathbb{N}} % 自然数
+\newcommand{\prob}{\mathbb{P}} % 概率
+\newcommand{\expe}{\mathbb{E}} % 期望
+\newcommand{\eps}{\varepsilon} % 任意小数
+\newcommand{\four}{\mathscr{F}} %Fourier 变换
+\newcommand{\co}{\mathcal{O}}
+\newcommand{\id}{\text{Id}}
+\newcommand{\im}{\text{Im}}
+\newcommand{\End}{\text{End}}
+\newcommand{\rank}{\text{rank}} % 秩
+\newcommand{\proof}{{\itshape 证明.}}
+\newcommand{\lcode}{\lstinline} % 段内插入代码
+\newcommand{\bcode}{\lstinline[language=bash]} % 段内插入bash代码
+
+
+% 小写罗马数字
+\newcommand{\rmnum}[1]{\romannumeral #1}
+
+% 定义新函数符号
+\DeclareMathOperator*{\argmax}{\arg\,\max}
+
+% 指定插图专用目录
+%\graphicspath{figures/}
+
+%mathbb 双透明体 (用于固定空间)
+%mathbf 粗体
+%mathcal 圆体 (用于算子)
+%mathfrak 正体 (用于范畴)
+%mathscr 花体 (用于集合系)
+
+%\newtheorem{label}[共享编号来源(环境, 不是计数器)]{标题文本}[父计数器]
+\newtheorem{defi}{定义}
+\newtheorem{theo}{定理}
+\newtheorem{prop}{命题}
+\newtheorem{problem}{算例}
+\newtheorem{corollary}{推论}
+\newtheorem{algorithm}{算法}
+
+% 增加文献库
+\addbibresource{teng.bib}
+\addbibresource{tda.bib}
+
+% 设置每个 part 重置 section 编号
+\makeatletter
+\@addtoreset{section}{part}
+\makeatother
+%计数器命名: part, chapter(book), section, subsection, subsubsection, page,
+%所有 newtheorem 定义的环境, equation, figure, table, footnote, 
+%enum~(i, ii, iii, iv) 序列表环境中的编号.
+%\setcounter{计数器}{值} 设置计数器的值.
+
+% 设置页眉页脚
+
+%\pagestyle{empty} %无页眉页脚
+%\pagestyle{plain} %首页页眉页脚
+%\pagestyle{fancy} %定制页眉页脚
+
+%\fancyhf{} %clear all head and foot
+%\fancyhf[HF EO LCR,... (位置)]{内容} 数值页眉页脚
+%H: Header F: Footer E: Even O: Odd L: left C: center R: right
+%\renewcommand{\headrulewidth}{0.5pt} % width of head line
+%\renewcommand{\footrulewidth}{0pt} % clear foot line
+%\thetitle 标题 \thepage 页码 \thechapter \thesection 章节标题
+
+% 修改名字为 plain 的页面样式 {} 内包含上一段中的命令
+% 标题, 目录和章标题页面默认均为 plain 样式, 因此改变这些页面的样式只能使用本命令.
+%\fancypagestyle{plain}{
+%}
+
+%\thispagestyle{plain} 改变当前页面的样式为 plain
+
+\fancypagestyle{plain}{
+      \renewcommand{\headrulewidth}{0pt} % width of head line
+      \renewcommand{\footrulewidth}{0pt} % clear foot line
+      \fancyhf[H]{}
+      \fancyhf[FC]{\thepage}
+}
+
+%\pagestyle{plain}
+
+\fancypagestyle{fancy}{
+    \fancyhf[HL]{}
+    \fancyhf[HC]{\footnotesize \MyTitle}   % 需要 \usepackage{authoraftertitle} 
+    \fancyhf[HR]{}
+    \fancyhf[FL]{\footnotesize 第 \thepage 页, 共 \pageref{LastPage} 页} % 需要 \usepackage{lastpage} 
+    \fancyhf[FC]{}
+    \fancyhf[FR]{\footnotesize 内部使用, 未经许可不得扩散}
+}
+
+\pagestyle{fancy}
+
+%重定义图表的引词
+%\renewcommand\figurename{\rm 图}
+%\renewcommand\tablename{\rm 表}
+
+% 配置代码插入的风格
+\lstset {
+    language            =   go,                  % 代码语言
+    basicstyle          =   \ttfamily,          % 基本代码风格
+    keywordstyle        =   \color{blue}, % 关键字风格
+    commentstyle        =   \ttfamily,  % 注释的风格，斜体
+    stringstyle         =   \bfseries\ttfamily,  % 字符串风格
+    flexiblecolumns,                % 别问为什么，加上这个
+    %numbers             =   left,   % 行号的位置在左边
+    %showspaces          =   false,  % 是否显示空格，显示了有点乱，所以不现实了
+    %numberstyle         =   \zihao{-5}\ttfamily,    % 行号的样式，小五号，tt等宽字体
+    showstringspaces    =   false,  % 是否显示 string 内部的空格
+    captionpos          =   t,      % 这段代码的名字所呈现的位置，t指的是top上面
+    frame               =   lrtb,   % 显示边框, none: 不显示.
+    breaklines          =   true,   % 自动换行
+    columns             =   fixed,   
+    basewidth           =   0.5em   % 字宽
+}
+
+
+%单独提取所有公式, 图像, 图表 (必须紧跟 begin{document} 之前设置)
+%\usepackage[active,displaymath,textmath,graphics,showlabels,tightpage]{preview}
+%\PreviewEnvironment{tabu}
+%\PreviewEnvironment{lstlisting}
+% 使用 pdf2svg output.pdf output_%03d.svg all 来转换生成的 pdf 文件为分页的 svg 图片.
+
+\title{JWT 认证库}
+\date{最后更新日期: \today}
+\author{滕飞}
+
+\begin{document}
+\maketitle
+
+\section{功能简介}
+
+本代码库实现了基于 JWT (JSON Web Token) 的访问认证功能. 每位合法用户在
+每次访问某种服务前, 需要先利用自己的 RSA 私钥签名生成一个 JWT, 然后
+将该 JWT 放到 HTTP Header 中的 Authrization 域中. 服务器依据此信息来
+判定用户是否合法. 为避免 JWT 被冒充以及实现访问次数的限制, 
+每次访问用户必须在 JWT 中中间部分包含一个访问次数整数, 
+只有该次数与服务器中记录的当前访问次数吻合时, 该访问才被允许.
+为此, 同一个用户只能串行访问该服务器.
+在建立用户时, 每位用户会被设置一个最大访问次数限制. 
+当访问次数超过该限制时, 该用户也将被禁止访问. 服务器可以定期
+将所记录的用户访问次数归零.
+
+本软件包包含 $4$ 个部分, 分别为
+\begin{itemize}
+    \item \lcode{package jwt_auth}: 一个 go package, 提供用于实现上述功能的函数.
+    \item \bcode{server}: 基于 \lcode{package gin} 实现的一个服务器程序, 作为服务器端的示例来提供认证服务.
+    \item \bcode{generator_user_add}: 一个生成添加用户信息的程序, 用于向服务器添加一个新用户. 添加用户的具体步骤可参见 \ref{}.
+    \item \bcode{generator}: 一个生成每次访问所需的 JWT 的程序. 
+\end{itemize}
+        \begin{enumerate}
+            \item 用户在自己本地生成一对无密码保护的 rsa 密钥对. 
+                通过运行脚本 \bcode{make_pem_keypair.sh <user_name>} 来生成密钥对 \bcode{<user_name>.pem} 
+                和 \bcode{<user_name>_pub.pem}, 其中以 \bcode{_pub} 结尾的为公钥, 另一个为私钥.
+            \item 将公钥
+        \end{enumerate}
+\end{itemize}
+
+\end{document}
