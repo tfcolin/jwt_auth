@@ -12,12 +12,6 @@ import (
       "gitee.com/tfcolin/jwt_auth"
 )
 
-type UserAddJson struct {
-      Token string      `json:"token"`
-      AccLimit int      `json:"acc_limit"`
-      PubKey string     `json:"pubkey"`
-}
-
 func main() {
       if len(os.Args) < 5 {
             fmt.Println ("Usage: generator user_id(int) comm_seq user_name rsa_key_path")
