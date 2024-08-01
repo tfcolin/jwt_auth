@@ -88,7 +88,7 @@ curl -X POST/GET -H @user_name.header --json <包含命令参数的JSON文件> h
 
 用于管理用户信息的 API 包括
 
-* /admin/list_user: (对应 jwt_auth.ListUsers 函数)
+* GET: /admin/list_user: (对应 jwt_auth.ListUsers 函数)
   列出所有用户信息(数组). 每条用户信息包括 
   {
       "id": 唯一用户编号,
@@ -97,11 +97,11 @@ curl -X POST/GET -H @user_name.header --json <包含命令参数的JSON文件> h
       "acc_limit": 允许的用户最大访问次数
   }
 
-* /admin/get_new_id:  (对应 jwt_auth.NewUserId 函数)       
+* GET: /admin/get_new_id:  (对应 jwt_auth.NewUserId 函数)       
   获取一个未被占用的用户 id 编号, 用于添加新用户. 获得的 Json 格式为
   { "id": 新用户编号 }
 
-* /admin/add_user: (对应 jwt_auth.UserAdd 函数)
+* POST: /admin/add_user: (对应 jwt_auth.UserAdd 函数)
   添加新用户, 命令参数的 Json 格式为
   {
     "id" : 用户编号
@@ -114,18 +114,18 @@ curl -X POST/GET -H @user_name.header --json <包含命令参数的JSON文件> h
   然后再使用 generator_user_add 命令生成 JSON 文件, 并把生成的 JSON 文件传给管理员. 
   最后管理员再调用 add_user 命令并传入该 JSON 文件来完成用户的添加.
   
-* /admin/remove_user: (对应 jwt_auth.UserRemove 函数)
+* POST: /admin/remove_user: (对应 jwt_auth.UserRemove 函数)
   删除一个用户, 命令参数 Json 格式为
   { "id" : 用户编号 }
 
-* /admin/clear_access_time (对应 jwt_auth.ClearAccessTime 函数)
+* POST: /admin/clear_access_time (对应 jwt_auth.ClearAccessTime 函数)
   将所有用户的访问次数归零, 无需提供 JSON 参数文件.
 
-* /admin/save_and_quit (对应 jwt_auth.SaveUserInfo 函数)
+* POST: /admin/save_and_quit (对应 jwt_auth.SaveUserInfo 函数)
   保存所有用户信息并退出服务器, 无需提供 JSON 参数文件. 
   下次服务器启动时, 只要指定正确的 user_info_path, 即可恢复所有用户的信息. 
 
-* /api/test 
+* GET: /api/test 
   用于作为示例表示普通用户的实质功能调用接口. 
   用户在进入该功能前, 必须以 gin middlewire 的方式通过访问权限认证, 
   认证时需调用 jwt_auth.UserAccess 函数.
