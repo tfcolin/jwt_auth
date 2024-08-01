@@ -1,8 +1,18 @@
 = 功能简介 =
 
-本模块实现了基于 JWT (JSON Web Token) 的访问认证功能. 每位合法用户在每次访问某种服务前, 需要先利用自己的 RSA 私钥签名生成一个 JWT, 然后将该 JWT 放到 HTTP Header 中的 Authrization 域中. 服务器依据此信息来判定用户是否合法. 为避免 JWT 被冒充以及实现访问次数的限制, 每次访问用户必须在 JWT 中中间部分包含一个访问次数整数, 只有该次数与服务器中记录的当前访问次数吻合时, 该访问才被允许. 为此, 同一个用户只能串行访问该服务器. 在建立用户时, 每位用户会被设置一个最大访问次数限制. 当访问次数超过该限制时, 该用户也将被禁止访问. 服务器可以定期将所记录的用户访问次数归零.
+本模块实现了基于 JWT (JSON Web Token) 的访问认证功能. 
+每位合法用户在每次访问某种服务前, 需要先利用自己的 RSA 私钥签名生成一个 JWT, 
+然后将该 JWT 放到 HTTP Header 中的 Authrization 域中. 
+服务器依据此信息来判定用户是否合法. 为避免 JWT 被冒充以及实现访问次数的限制, 
+每次访问用户必须在 JWT 中中间部分包含一个访问次数整数, 
+只有该次数与服务器中记录的当前访问次数吻合时, 该访问才被允许. 
+为此, 同一个用户只能串行访问该服务器. 在建立用户时, 每位用户会被设置一个最大访问次数限制. 
+当访问次数超过该限制时, 该用户也将被禁止访问. 服务器可以定期将所记录的用户访问次数归零.
 
-每位用户都有一个唯一的整数用户 Id. 0 号 Id 表示管理员账户, 用于添加删除用户等管理员操作. 所有整数用户 Id 由代码库内部维护. 管理员可向服务器查询一个新的可用用户 Id, 然后交给用户, 让用户绑定其公钥后生成一个专用于添加用户的 JSON 文件. 然后由管理员将该文件提交给服务器以完成用户的添加. 管理员也需要通过 RSA 密钥对来验证身份, 需要在服务器启动前生成并在服务器启动时告知服务器.
+每位用户都有一个唯一的整数用户 Id. 0 号 Id 表示管理员账户, 用于添加删除用户等管理员操作. 
+所有整数用户 Id 由代码库内部维护. 管理员可向服务器查询一个新的可用用户 Id, 然后交给用户, 
+让用户绑定其公钥后生成一个专用于添加用户的 JSON 文件. 然后由管理员将该文件提交给服务器以完成用户的添加. 
+管理员也需要通过 RSA 密钥对来验证身份, 需要在服务器启动前生成并在服务器启动时告知服务器.
 
 本软件包包含 5 个部分, 分别为
 
@@ -29,23 +39,37 @@ server user_info_path admin_pubkey_path
 generator_user_add user_id(int) user_name rsa_pubkey_path
 generator user_id(int) comm_seq user_name rsa_key_path
 
-其中, 生成 rsa 密钥对的脚本 make_pem_keypair.sh 位于 generator_user_add/ 目录中. 脚本会分别生成私钥和公钥文件, 并分别命名为 <user_name>.pem 和 <user_name>_pub.pem.
+其中, 生成 rsa 密钥对的脚本 make_pem_keypair.sh 位于 generator_user_add/ 目录中. 
+脚本会分别生成私钥和公钥文件, 并分别命名为 <user_name>.pem 和 <user_name>_pub.pem.
 
-server 命令用于启动服务器, 其中, user_info_path 为一个管理员目录, 用于保存所有用户信息. admin_pubkey_path 为管理员的公钥文件. 其中, user_info_path 目录中包含
+server 命令用于启动服务器, 其中, user_info_path 为一个管理员目录, 用于保存所有用户信息. 
+admin_pubkey_path 为管理员的公钥文件. 
+其中, user_info_path 目录中包含
   1) 所有用户的公钥文件, 文件名为 <user_name>_<user_id(%04d)>.pem.
   2) 用户信息文本文件 user_acc.dat: 每行表示一个用户, 包含 4 个字段, 其含义为:
     用户编号  用户名  用户访问次数  用户最大访问次数
-在服务器启动前, 服务器必须确保 user_info_path 目录存在, 并且 user_info_path/user_acc.dat 文件也存在(可以为空), 否则会报错. 注意 user_info_path 中不包含管理员的信息.
+在服务器启动前, 服务器必须确保 user_info_path 目录存在, 
+并且 user_info_path/user_acc.dat 文件也存在(可以为空), 否则会报错. 
+注意 user_info_path 中不包含管理员的信息.
 
-generator_user_add 用于生成添加用户时所用到的 JSON 文件. 其中 user_id 为用户编号, user_name 为用户名称, rsa_pubkey_path 指明用户的公钥文件. 输出的 JSON 内容直接输出到标准输出.
+generator_user_add 用于生成添加用户时所用到的 JSON 文件. 
+其中 user_id 为用户编号, user_name 为用户名称, rsa_pubkey_path 指明用户的公钥文件. 
+输出的 JSON 内容直接输出到标准输出.
 
-generator 用于生成用户验证访问权限时需要用到的 JWT, 并将该 JWT 写到一个 http Header 文件中. 其中, user_id 为用户编号, comm_seq 为该用户访问服务器的当前次数编号, 该编号必须与服务器中的记录吻合才能通过验证. user_name 为用户名. rsa_key_path 为用户的私钥, 用于为生成的 JWT 签名. 输出的 header 内容直接输出到标准输出.
+generator 用于生成用户验证访问权限时需要用到的 JWT, 并将该 JWT 写到一个 http Header 文件中. 
+其中, user_id 为用户编号, comm_seq 为该用户访问服务器的当前次数编号, 
+该编号必须与服务器中的记录吻合才能通过验证. 
+user_name 为用户名. rsa_key_path 为用户的私钥, 用于为生成的 JWT 签名. 
+输出的 header 内容直接输出到标准输出.
 
 对于管理员用户, 可通过
 generator 0 0 admin admin_key_path > admin.header
-生成一个专用于验证管理员身份的 header 文件. 而普通用户可通过 > user_name.header 生成属于自己的 header 文件.
+生成一个专用于验证管理员身份的 header 文件. 
+而普通用户可通过 > user_name.header 生成属于自己的 header 文件.
 
-server 服务器提供了两类 RESTful API 调用, 一类用于管理员管理用户信息, 一类用于普通用户执行实质功能命令. 管理用户信息的 API 以 /admin 开头, 而普通用户的实质功能命令由 /api 开头.
+server 服务器提供了两类 RESTful API 调用, 一类用于管理员管理用户信息, 
+另一类用于普通用户执行实质功能命令. 管理用户信息的 API 以 /admin 开头, 
+而普通用户的实质功能命令由 /api 开头.
 
 管理员可通过如下命令
 curl -X POST/GET -H @admin.header --json <包含命令参数的JSON文件> http://localhost:8080/admin/...
@@ -84,7 +108,11 @@ curl -X POST/GET -H @user_name.header --json <包含命令参数的JSON文件> h
     "username": 用户名称,
     "pubkey": 用户的公钥 (pem 格式)
   }
-  该 JSON 文件可通过 generator_user_add 命令生成. 但管理员需要先调用 get_new_id 命令获取一个新的用户编号, 然后把该编号告诉用户. 用户首先通过 make_pem_keypair.sh 脚本在本地生成密钥对. 然后再使用 generator_user_add 命令生成 JSON 文件, 并把生成的 JSON 文件传给管理员. 最后管理员再调用 add_user 命令并传入该 JSON 文件来完成用户的添加.
+  该 JSON 文件可通过 generator_user_add 命令生成. 
+  但管理员需要先调用 get_new_id 命令获取一个新的用户编号, 然后把该编号告诉用户. 
+  用户首先通过 make_pem_keypair.sh 脚本在本地生成密钥对. 
+  然后再使用 generator_user_add 命令生成 JSON 文件, 并把生成的 JSON 文件传给管理员. 
+  最后管理员再调用 add_user 命令并传入该 JSON 文件来完成用户的添加.
   
 * /admin/remove_user: (对应 jwt_auth.UserRemove 函数)
   删除一个用户, 命令参数 Json 格式为
@@ -94,12 +122,17 @@ curl -X POST/GET -H @user_name.header --json <包含命令参数的JSON文件> h
   将所有用户的访问次数归零, 无需提供 JSON 参数文件.
 
 * /admin/save_and_quit (对应 jwt_auth.SaveUserInfo 函数)
-  保存所有用户信息并退出服务器, 无需提供 JSON 参数文件. 下次服务器启动时, 只要指定正确的 user_info_path, 即可恢复所有用户的信息. 
+  保存所有用户信息并退出服务器, 无需提供 JSON 参数文件. 
+  下次服务器启动时, 只要指定正确的 user_info_path, 即可恢复所有用户的信息. 
 
 * /api/test 
-  用于作为示例表示普通用户的实质功能调用接口. 用户在进入该功能前, 必须以 gin middlewire 的方式通过访问权限认证, 认证时需调用 jwt_auth.UserAccess 函数.
+  用于作为示例表示普通用户的实质功能调用接口. 
+  用户在进入该功能前, 必须以 gin middlewire 的方式通过访问权限认证, 
+  认证时需调用 jwt_auth.UserAccess 函数.
 
-另外, 管理员在调用上述所有以 /admin 开头的功能接口时, 也需要通过权限认证, 认证时可通过 jwt_auth.ValidateJWT 函数验证管理员的身份, 具体流程可参见 server/main.go 代码中的 auth_admin_mw 函数.
+另外, 管理员在调用上述所有以 /admin 开头的功能接口时, 也需要通过权限认证, 
+认证时可通过 jwt_auth.ValidateJWT 函数验证管理员的身份, 
+具体流程可参见 server/main.go 代码中的 auth_admin_mw 函数.
 
 = jwt_auth 中的其他函数 =
 
@@ -118,7 +151,8 @@ func GenerateJWT (id int, seq int, uname string, rsa_key_path string) (token_str
 用于生成一个 JWT, 其中 seq 为 JWT 中包含的当前用户访问次数.
 
 func GetInfoFromToken (token_str string) (id int, seq int, uname string) 
-用于从 JWT 中提取用户 id, 用户访问次数和用户名信息. 注意该函数仅提取 JWT 中的信息, 并不验证 JWT 签名的有效性. 而函数
+用于从 JWT 中提取用户 id, 用户访问次数和用户名信息. 
+注意该函数仅提取 JWT 中的信息, 并不验证 JWT 签名的有效性. 而函数
 func ValidateJWT (token_str string, rsa_pub_key *rsa.PublicKey) (id int, seq int, uname string) {
 则在获取信息的同时利用 rsa_pub_key 验证 JWT 签名的有效性, 如果签名无效, 则返回 id = -1.
 
