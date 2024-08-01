@@ -20,7 +20,8 @@ type IdJson struct {
 }
 
 type UserAddJson struct {
-      Token string      `json:"token"`
+      Id int      `json:"id"`
+      UserName string   `json:"username"`
       PubKey string     `json:"pubkey"`
 }
 
@@ -101,7 +102,7 @@ func admin_add_user_cb (c *gin.Context) {
             c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "commmand format error"})
             return
       }
-      st := jwt_auth.UserAdd (ua_input.Token, ACCESS_TIME_LIMIT, ([]byte)(ua_input.PubKey), user_path)
+      st := jwt_auth.UserAdd (ua_input.Id, ua_input.UserName, ACCESS_TIME_LIMIT, ([]byte)(ua_input.PubKey), user_path)
       switch (st) {
       case jwt_auth.UAS_SUCCESS:
             c.IndentedJSON(http.StatusOK, gin.H{"result": "Success"})

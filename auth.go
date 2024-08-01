@@ -39,7 +39,6 @@ const (
 
 const (
       MAX_ID = 4096
-      MAX_AUTH_RUN = 5
 )
 
 type User struct {
@@ -253,7 +252,7 @@ func NewUserId () int {
       return id
 }
 
-func UserAdd (token_str string, acc_limit int, pub_key_str []byte, user_path string) UserAddStatus {
+func UserAdd (id int, uname string, acc_limit int, pub_key_str []byte, user_path string) UserAddStatus {
       if !admin_on { return UAS_QUIT_ERROR }
       AdminLock ()
       defer AdminUnlock()
@@ -262,9 +261,6 @@ func UserAdd (token_str string, acc_limit int, pub_key_str []byte, user_path str
       if (err != nil) {
             return UAS_KEY_PARSE_ERR
       }
-      /* obtain id, uname, email */
-      id, _, uname := ValidateJWT (token_str, pub_key)
-
       if id < 0 || id >= MAX_ID {
             return UAS_ID_ERR
       }
