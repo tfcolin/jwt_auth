@@ -64,6 +64,8 @@ admin_pubkey_path 为管理员的公钥文件.
 在服务器启动前, 服务器必须确保 user_info_path 目录存在, 
 并且 user_info_path/user_acc.dat 文件也存在(可以为空), 否则会报错. 
 注意 user_info_path 中不包含管理员的信息.
+当服务器未运行时, 管理员可以手动修改 user_info_path 目录中的内容,
+但务必确保 1), 2) 两者信息的一致性.
 
 generator_user_add 用于生成添加用户时所用到的 JSON 文件. 
 其中 user_id 为用户编号, user_name 为用户名称, rsa_pubkey_path 指明用户的公钥文件. 
