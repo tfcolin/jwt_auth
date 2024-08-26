@@ -128,7 +128,7 @@ curl -X POST/GET -H @user_name.header --json <包含命令参数的JSON文件> h
   用户首先通过 make_pem_keypair.sh 脚本在本地生成密钥对. 
   然后再使用 generator_user_add 命令生成 JSON 文件, 并把生成的 JSON 文件传给管理员. 
   最后管理员再调用 add_user 命令并传入该 JSON 文件来完成用户的添加.
-  
+
 * POST: /admin/remove_user: (对应 jwt_auth.UserRemove 函数)
   删除一个用户, 命令参数 Json 格式为
   { "id" : 用户编号 }
@@ -143,7 +143,7 @@ curl -X POST/GET -H @user_name.header --json <包含命令参数的JSON文件> h
 * GET: /api/test 
   用于作为示例表示普通用户的实质功能调用接口. 
   用户在进入该功能前, 必须以 gin middlewire 的方式通过访问权限认证, 
-  认证时需调用 jwt_auth.UserAccess 函数.
+  服务器在进行用户认证时会调用 jwt_auth.UserAccess 函数.
 
 另外, 管理员在调用上述所有以 /admin 开头的功能接口时, 也需要通过权限认证, 
 认证时可通过 jwt_auth.ValidateJWT 函数验证管理员的身份, 
